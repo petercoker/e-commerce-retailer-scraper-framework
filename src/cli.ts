@@ -19,7 +19,7 @@ async function main() {
     console.log(`Found ${list.length} products.`);
 
     if (list.length > 0) {
-      const firstAsin = list[0].asin;
+      const firstAsin = list[0].id;
       console.log(`\nFetching details for: ${firstAsin}...`);
 
       const detail = await retailer.getProduct(firstAsin);

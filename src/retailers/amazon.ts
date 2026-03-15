@@ -1,7 +1,9 @@
 import { AMAZON_BASE_URL } from "../core/constants";
-import { BrowserManager } from "../utils/browser-manager";
-import { safeGoto, safeWaitForSelector } from "../utils/page-actions";
-import { ProductDetail, ProductListItem } from "../core/types/index";
+import { Product } from "../core/types";
+import { BrowserManager } from "../utility/browser-manager";
+import { safeGoto, safeWaitForSelector } from "../utility/page-actions";
+import { parsePrice } from "../utility/utils";
+
 /**
  * Main scraper class for Amazon.es.
  * Uses shared browser instance (via BrowserManager) to avoid repeated launches.
@@ -18,7 +20,7 @@ export class AmazonRetailer {
   async getProductList(
     keywords: string,
     page?: import("playwright").Page,
-  ): Promise<ProductListItem[]> {
+  ): Promise<Product[]> {
     console.log(`Searching for: ${keywords}`);
 
     const existingPage = page !== undefined;
@@ -48,19 +50,16 @@ export class AmazonRetailer {
         3,
       );
 
-      return await targetPage.evaluate(() => {
-        const productListItems: ProductListItem[] = [];
+      // 1. Get raw data from browser (only DOM stuff)
+      const rawItems = await targetPage.evaluate(() => {
+        const items: { asin: string; title: string; priceText: string }[] = [];
 
-        /** * Logic:
-         * 1. Target search results with data-component-type
-         * 2. Filter out .AdHolder (Sponsored ads)
-         */
         const nodes = document.querySelectorAll(
           "div[data-component-type='s-search-result']",
         );
 
         for (const node of Array.from(nodes)) {
-          // Skip if it's an Ad/Sponsored item
+          // Skip sponsored/ad items
           if (
             node.classList.contains("AdHolder") ||
             node.querySelector(".s-sponsored-label-text")
@@ -72,28 +71,36 @@ export class AmazonRetailer {
           if (!asin || asin.length < 5) continue;
 
           const titleEl = node.querySelector(
-            "h2 a span, .a-size-medium, .a-size-base-plus",
+            "h2 span.a-size-medium, h2 a span, .a-size-base-plus, span.a-text-normal",
           );
           const title = titleEl?.textContent?.trim() || "No title";
 
           const priceEl = node.querySelector(".a-price .a-offscreen");
-          const price = priceEl?.textContent?.trim() || "Check website";
+          const priceText = priceEl?.textContent?.trim() || "No price";
 
-          // Only add if it's a unique organic result
-          if (
-            title !== "No title" &&
-            !productListItems.find((i) => i.asin === asin)
-          ) {
-            productListItems.push({
-              asin,
-              title,
-              price,
-            });
-          }
+          items.push({ asin, title, priceText });
 
-          if (productListItems.length >= 5) break;
+          if (items.length >= 5) break;
         }
-        return productListItems;
+
+        return items;
+      });
+
+      // 2. Parse prices **in Node.js** (no browser context needed)
+      return rawItems.map((item) => {
+        const { price, currency } = parsePrice(item.priceText);
+
+        return {
+          retailer: "amazon",
+          id: item.asin,
+          url: "", // can fill later if needed
+          title: item.title,
+          price,
+          currency,
+          images: [],
+          availability: "unknown",
+          metadata: {},
+        } satisfies Product;
       });
     } catch (error) {
       // Take a screenshot if it fails so you can see if you got hit by a CAPTCHA
@@ -118,7 +125,7 @@ export class AmazonRetailer {
   async getProduct(
     asin: string,
     page?: import("playwright").Page,
-  ): Promise<ProductDetail> {
+  ): Promise<Product> {
     console.log(`Fetching product: ${asin}`);
 
     const existingPage = page !== undefined;
@@ -130,25 +137,45 @@ export class AmazonRetailer {
       await safeGoto(targetPage, url);
       await safeWaitForSelector(targetPage, "#productTitle", 3);
 
-      return await targetPage.evaluate((productAsin) => {
+      const rawDetail = await targetPage.evaluate((productAsin) => {
         const title =
           document.querySelector("#productTitle")?.textContent?.trim() ||
           "No title found";
+
         const priceEl =
           document.querySelector(".a-price .a-offscreen") ||
-          document.querySelector("#price_inside_buybox");
-        const price = priceEl?.textContent?.trim() || "No price";
+          document.querySelector("#price_inside_buybox") ||
+          document.querySelector(".a-price-whole");
+
+        const priceText = priceEl?.textContent?.trim() || "No price";
 
         const images = Array.from(
-          document.querySelectorAll("#landingImage, #imgTagWrapperId img"),
+          document.querySelectorAll(
+            "#landingImage, #imgTagWrapperId img, #altImages img",
+          ),
         )
           .map((img) => (img as HTMLImageElement).src)
+          .filter(Boolean)
           .slice(0, 5);
 
-        return { asin: productAsin, title, price, images };
+        return { productAsin, title, priceText, images };
       }, asin);
+
+      // Parse price **in Node.js** after evaluation
+      const { price, currency } = parsePrice(rawDetail.priceText);
+
+      return {
+        retailer: "amazon",
+        id: rawDetail.productAsin,
+        url: targetPage.url(),
+        title: rawDetail.title,
+        price,
+        currency,
+        images: rawDetail.images,
+        availability: "unknown",
+        metadata: {},
+      };
     } finally {
-      // Only close the page if we created it (not reusing an existing page)
       if (!existingPage) {
         await targetPage.close();
       }

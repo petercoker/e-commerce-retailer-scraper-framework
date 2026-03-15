@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { safeGoto, safeWaitForSelector } from "../../src/utils/page-actions";
+import { safeGoto, safeWaitForSelector } from "../../src/utility/page-actions";
 
 test.describe("Page Action Utils", () => {
   test("safeGoto should retry on failure and eventually throw", async ({
