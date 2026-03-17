@@ -1,36 +1,38 @@
-import * as dotenv from "dotenv";
-import { AmazonRetailer } from "./retailer";
-
-// Load .env configs
-dotenv.config();
+import { events } from "./core/events";
+import { saveToCsv, saveToJson } from "./pipelines";
+import { AmazonAdapter } from "./retailers/amazon";
 
 async function main() {
-  const args = process.argv.slice(2);
-  const keywords = args.length === 0 ? "MacBook Pro" : args.join(" ");
+  const keywords = process.argv.slice(2).join(" ") || "MacBook Pro M5";
 
-  const retailer = new AmazonRetailer();
+  console.log(`\n=== Amazon.es Scraper ===`);
+  console.log(`Searching for: "${keywords}"\n`);
+
+  const retailer = new AmazonAdapter();
+
+  // Decoupled pipelines - automatically save when data arrives
+  events.on("productList", async (products) => {
+    await saveToJson(products, `amazon-${keywords.replace(/\s+/g, "-")}.json`);
+    await saveToCsv(products, `amazon-${keywords.replace(/\s+/g, "-")}.csv`);
+  });
 
   try {
-    console.log(`\n=== Amazon.es Scraper CLI ===`);
-    console.log(`Searching for: "${keywords}"\n`);
-
-    // The retailer uses the Singleton BrowserManager internally
     const list = await retailer.getProductList(keywords);
-    console.log(`Found ${list.length} products.`);
+
+    console.log(`Found ${list.length} products!`);
 
     if (list.length > 0) {
-      const firstAsin = list[0].asin;
-      console.log(`\nFetching details for: ${firstAsin}...`);
-      
-      const detail = await retailer.getProduct(firstAsin);
-      console.log(`Product Details:`, JSON.stringify(detail, null, 2));
+      const detail = await retailer.getProduct(list[0].id);
+      console.log(
+        `Product Details fetced for:`,
+        JSON.stringify(detail, null, 2),
+      );
     }
   } catch (error) {
     console.error("\nCLI Error:", (error as Error).message);
   } finally {
-    console.log("\nCleaning up...");
-    // This closes the shared browser instance once everything is done
     await retailer.cleanup();
+    console.log("\nBrowser closed. Done!");
   }
 }
 

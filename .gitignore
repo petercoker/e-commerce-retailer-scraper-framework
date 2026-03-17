@@ -1,4 +1,15 @@
 .vscode/
 node_modules/
 dist/
+dist
+
+# Playwright reports and traces
+playwright-report/
 test-results/
+playwright/.cache/
+*.trace.zip
+*.png   # optional: if you have auto-screenshots everywhere
+*.webm  # videos
+
+# Jest
+coverage

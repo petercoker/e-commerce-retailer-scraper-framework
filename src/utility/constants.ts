@@ -1,1 +1,0 @@
-export const AMAZON_BASE_URL = "https://www.amazon.es";

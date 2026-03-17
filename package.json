@@ -3,14 +3,20 @@
   "version": "1.0.0",
   "main": "src/retailer.ts",
   "scripts": {
-    "test": "playwright test",
-    "build": "tsc",
-    "start": "node dist/cli.js",
-    "dev": "ts-node src/cli.ts",
+    "test": "npm run test:unit && npm run test:e2e",
+    "test:unit": "jest --config jest.config.js --silent=false",
+    "test:e2e": "playwright test",
+    "test:e2e:headed": "playwright test --headed",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:debug": "playwright test --debug --timeout=60000",
+    "coverage": "npx jest --coverage",
     "demo": "ts-node src/cli.ts \"MacBook Pro M5\""
   },
   "devDependencies": {
     "@playwright/test": "^1.51.0",
+    "@types/jest": "^30.0.0",
+    "jest": "^30.3.0",
+    "ts-jest": "^29.4.6",
     "ts-node": "^10.9.2",
     "typescript": "^5.6.2"
   },
