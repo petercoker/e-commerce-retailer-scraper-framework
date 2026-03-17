@@ -2,7 +2,11 @@ import { AMAZON_ES_BASE_URL } from "../core/constants";
 import { events } from "../core/events";
 import { ScraperCore } from "../core/scraper-core";
 import { Product } from "../core/types";
-import { safeGoto, safeWaitForSelector } from "../utility/page-actions";
+import {
+  safeGoto,
+  safeWaitForSelector,
+  withRetry,
+} from "../utility/page-actions";
 import { parsePrice } from "../utility/utils";
 
 /**
@@ -24,7 +28,11 @@ export class AmazonAdapter extends ScraperCore {
       await this.randomDelay(1200, 3500);
 
       const url = `${AMAZON_ES_BASE_URL}/s?k=${encodeURIComponent(keywords)}`;
-      await safeGoto(targetPage, url);
+      await withRetry(
+        () => safeGoto(targetPage, url),
+        "Navigate to search page",
+        3,
+      );
 
       // Delay 2: after page load, before cookie click (page settling)
       await this.randomDelay(800, 2500);
@@ -46,9 +54,14 @@ export class AmazonAdapter extends ScraperCore {
 
       // --- 2. WAIT FOR ORGANIC RESULTS ---
       // We specifically wait for search results that are NOT ads
-      await safeWaitForSelector(
-        targetPage,
-        "div[data-component-type='s-search-result']:not(.AdHolder)",
+      await withRetry(
+        () =>
+          safeWaitForSelector(
+            targetPage,
+            "div[data-component-type='s-search-result']:not(.AdHolder)",
+            3,
+          ),
+        "Wait for search results",
         3,
       );
 
@@ -135,12 +148,21 @@ export class AmazonAdapter extends ScraperCore {
       await this.randomDelay(1200, 3500);
 
       const url = `${AMAZON_ES_BASE_URL}/dp/${asin}`;
-      await safeGoto(targetPage, url);
+
+      await withRetry(
+        () => safeGoto(targetPage, url),
+        "Navigate to product page",
+        3,
+      );
 
       // Delay 2: after load
       await this.randomDelay(1000, 3000);
 
-      await safeWaitForSelector(targetPage, "#productTitle", 3);
+      await withRetry(
+        () => safeWaitForSelector(targetPage, "#productTitle", 3),
+        "Wait for product title",
+        3,
+      );
 
       // 1. Get raw data from browser
       const rawDetail = await targetPage.evaluate((productAsin) => {

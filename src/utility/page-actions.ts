@@ -1,27 +1,32 @@
 import { Page } from "playwright";
 
 /**
- * Core retry logic with exponential backoff
+ * Retry a function with exponential backoff
+ * @param fn - async function to retry
+ * @param label - name for logging
+ * @param maxRetries - default 3
+ * @param baseDelayMs - starting delay (doubles each retry)
  */
-async function withRetry<T>(
-  action: () => Promise<T>,
+export async function withRetry<T>(
+  fn: () => Promise<T>,
   label: string,
-  retries: number,
+  maxRetries = 3,
+  baseDelayMs = 2000
 ): Promise<T> {
-  for (let i = 0; i < retries; i++) {
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
-      return await action();
-    } catch (error) {
-      console.warn(
-        `[Retry ${i + 1}/${retries}] ${label} failed: ${(error as Error).message}`,
-      );
-      if (i === retries - 1) throw error;
-      // Using page.waitForTimeout is cleaner if you have access to page, 
-      // but a standard setTimeout works fine here.
-      await new Promise((res) => setTimeout(res, 2000 * (i + 1))); 
+      return await fn();
+    } catch (err) {
+      console.warn(`[Retry ${attempt}/${maxRetries}] ${label} failed: ${(err as Error).message}`);
+      if (attempt === maxRetries) throw err;
+
+      // Exponential backoff + jitter
+      const delay = baseDelayMs * Math.pow(2, attempt - 1) + Math.random() * 1000;
+      console.log(`Retrying after ${Math.round(delay)}ms...`);
+      await new Promise(r => setTimeout(r, delay));
     }
   }
-  throw new Error(`${label} failed after ${retries} retries`);
+  throw new Error(`${label} failed after ${maxRetries} retries`);
 }
 
 export async function safeGoto(
