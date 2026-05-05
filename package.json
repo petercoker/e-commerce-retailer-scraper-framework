@@ -21,6 +21,7 @@
     "typescript": "^5.6.2"
   },
   "dependencies": {
-    "dotenv": "^17.3.1"
+    "dotenv": "^17.3.1",
+    "javascript-commons": "github:shalion/javascript-commons#Tech-14200-final-version"
   }
 }
