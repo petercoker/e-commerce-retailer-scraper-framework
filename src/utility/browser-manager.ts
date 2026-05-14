@@ -1,9 +1,27 @@
 import * as dotenv from "dotenv";
 import { Browser, chromium, Page } from "playwright";
-import { buildProxy } from "javascript-commons/packages/proxy/src/factory.js";
 
 // Load environment variables from .env file
 dotenv.config();
+
+// Dynamic import for ESM module from javascript-commons
+// The proxy package uses ESM, so we need to import it dynamically
+type BuildProxyFn = (region?: string | null, headers?: Record<string, string>) => Promise<{
+  host: string;
+  port: number;
+  username: string;
+  password: string;
+} | null>;
+
+let buildProxy: BuildProxyFn | null = null;
+
+async function getBuildProxy(): Promise<BuildProxyFn> {
+  if (!buildProxy) {
+    const proxyModule = await import("javascript-commons/packages/proxy/dist/factory.js");
+    buildProxy = proxyModule.buildProxy;
+  }
+  return buildProxy;
+}
 
 /**
  * Singleton manager for Playwright browser instance.
@@ -42,7 +60,8 @@ export class BrowserManager {
 
       // Get proxy configuration from environment
       const proxyRegion = process.env.PROXY_REGION || null;
-      const proxyConfig = await buildProxy(proxyRegion);
+      const buildProxyFn = await getBuildProxy();
+      const proxyConfig = await buildProxyFn(proxyRegion);
 
       // Convert proxy to Playwright format
       const proxy = proxyConfig ? {

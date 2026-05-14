@@ -1,0 +1,15 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "types": ["vitest/globals", "node"],
+    "moduleResolution": "bundler",
+    "noEmit": true
+  },
+  "include": [
+    "./**/*.ts",
+    "./**/*.spec.ts",
+    "./**/*.test.ts",
+    "./vitest.d.ts"
+  ],
+  "exclude": ["../node_modules"]
+}

@@ -1,6 +1,7 @@
 {
   "name": "amazon-es-retailer",
   "version": "1.0.0",
+  "type": "module",
   "main": "src/retailer.ts",
   "scripts": {
     "test": "npm run test:unit && npm run test:e2e",
@@ -11,13 +12,14 @@
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:debug": "playwright test --debug --timeout=60000",
     "coverage": "vitest run --coverage",
-    "demo": "ts-node src/cli.ts \"MacBook Pro M5\"",
-    "test:proxy": "ts-node test-proxy.ts"
+    "demo": "tsx src/cli.ts \"MacBook Pro M5\"",
+    "test:proxy": "tsx test-proxy.ts"
   },
   "devDependencies": {
     "@playwright/test": "^1.51.0",
     "@vitest/coverage-v8": "^3.2.4",
     "ts-node": "^10.9.2",
+    "tsx": "^4.21.0",
     "typescript": "^5.6.2",
     "vitest": "^3.2.4"
   },

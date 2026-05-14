@@ -700,7 +700,7 @@ describe('TECH-14202: Library Import Integration', () => {
   });
 
   it('should import DIRECT_SOURCE constant', async () => {
-    const sourceMetricsModule = await import('../../node_modules/javascript-commons/packages/proxy/src/metrics/sourceMetrics.js');
+    const sourceMetricsModule = await import('../../node_modules/javascript-commons/packages/proxy/dist/metrics/sourceMetrics.js');
     expect(sourceMetricsModule.DIRECT_SOURCE).toBe('direct');
   });
 
