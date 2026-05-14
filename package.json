@@ -4,23 +4,25 @@
   "main": "src/retailer.ts",
   "scripts": {
     "test": "npm run test:unit && npm run test:e2e",
-    "test:unit": "jest --config jest.config.js --silent=false",
+    "test:unit": "vitest run",
+    "test:unit:watch": "vitest",
     "test:e2e": "playwright test",
     "test:e2e:headed": "playwright test --headed",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:debug": "playwright test --debug --timeout=60000",
-    "coverage": "npx jest --coverage",
-    "demo": "ts-node src/cli.ts \"MacBook Pro M5\""
+    "coverage": "vitest run --coverage",
+    "demo": "ts-node src/cli.ts \"MacBook Pro M5\"",
+    "test:proxy": "ts-node test-proxy.ts"
   },
   "devDependencies": {
     "@playwright/test": "^1.51.0",
-    "@types/jest": "^30.0.0",
-    "jest": "^30.3.0",
-    "ts-jest": "^29.4.6",
+    "@vitest/coverage-v8": "^3.2.4",
     "ts-node": "^10.9.2",
-    "typescript": "^5.6.2"
+    "typescript": "^5.6.2",
+    "vitest": "^3.2.4"
   },
   "dependencies": {
+    "axios": "^1.16.0",
     "dotenv": "^17.3.1",
     "javascript-commons": "github:shalion/javascript-commons#Tech-14200-final-version"
   }

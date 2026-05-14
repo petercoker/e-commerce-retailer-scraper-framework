@@ -1,5 +1,6 @@
 import * as dotenv from "dotenv";
 import { Browser, chromium, Page } from "playwright";
+import { buildProxy } from "javascript-commons/packages/proxy/src/factory.js";
 
 // Load environment variables from .env file
 dotenv.config();
@@ -39,8 +40,20 @@ export class BrowserManager {
       // Default to true if not explicitly set to "false"
       const isHeadless = process.env.HEADLESS !== "false";
 
+      // Get proxy configuration from environment
+      const proxyRegion = process.env.PROXY_REGION || null;
+      const proxyConfig = await buildProxy(proxyRegion);
+
+      // Convert proxy to Playwright format
+      const proxy = proxyConfig ? {
+        server: `http://${proxyConfig.host}:${proxyConfig.port}`,
+        username: proxyConfig.username,
+        password: proxyConfig.password,
+      } : undefined;
+
       this.browser = await chromium.launch({
         headless: isHeadless,
+        proxy,
       });
     }
     return this.browser;
