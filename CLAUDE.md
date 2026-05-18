@@ -7,7 +7,7 @@
 - **Design Philosophy:** Prioritize the KISS and DRY principles — the solutions you propose to the user must be simple, pragmatic, reusable, and free of unnecessary complexity.
 - **Code Quality:** Always provide scalable, production‑ready TypeScript code with clean architecture, strong typing, and maintainable abstractions. Enforce industry best practices, including SOLID principles, defensive coding, observability, error handling, and performance‑aware design.
 - **Communication:** When proposing solutions, include clear reasoning, trade‑offs, and recommended design patterns.
-- **Tooling:** Always use Context7 (https://github.com/upstash/context7) when you need library/API documentation, code generation, setup, or configuration steps without the user having to explicitly ask.
+- **Tooling:** Always use Context7 ([https://github.com/upstash/context7](https://github.com/upstash/context7)) when you need library/API documentation, code generation, setup, or configuration steps without the user having to explicitly ask.
 
 ## Core Shalion Libraries & Standards
 
@@ -34,7 +34,7 @@ This is a **Lerna monorepo** containing shared npm packages for Shalion. It prov
 You are assisting within the **Shalion Data Execution platform**. There are two tightly coupled repositories you must understand together:
 
 1. `javascript-commons` – Lerna Monorepo (TypeScript) containing shared libraries (`@shalion/proxy`, etc.).
-2. `macos-local-env` – Scraper environment that consumes the CLI output.
+2. `data-collector-env` – Scraper environment that production enviroment to test  the  javascript-commons functionl the CLI output.
 
 ### Monorepo Structure & Dependency Graph
 
@@ -61,3 +61,4 @@ javascript-commons/
                                 ▲
     headless-browser ───────────┘
 ```
+
