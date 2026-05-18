@@ -65,7 +65,7 @@ class TestNetworkMeter {
     source?: string;
     latencyMs?: number;
     errorType?: string;
-  }): void {
+    }): void {
     const { bytesRead, bytesWritten, isRequest = false, source, latencyMs, errorType } = report;
     let collector = this.directCollector;
 
