@@ -1,6 +1,6 @@
 # E-Commerce Retailer Scraper Framework
 
-A clean, extensible, TDD-built Node.js + TypeScript + Playwright scraper for Amazon.es — designed to move offline market research online and easily extendable to other sites (eBay, AliExpress, Mercadona, PcComponentes, etc.).
+A clean, extensible, TDD-built Node.js + TypeScript + Playwright scraper for Amazon.es: designed to move offline market research online and easily extendable to other sites (eBay, AliExpress, Mercadona, PcComponentes, etc.).
 
 #  Project Structure 
 src/
